@@ -33,5 +33,6 @@ interface AttendanceRepository {
     suspend fun syncRoster(eventId: String): Result<Int>
     suspend fun syncAttendance(eventId: String): Result<Int>
     suspend fun syncPendingRecords(eventId: String): Result<Int>
+    suspend fun syncAllPendingRecords(): Result<Int>
     suspend fun saveImportedStudents(students: List<EventStudent>): Result<Int>
 }

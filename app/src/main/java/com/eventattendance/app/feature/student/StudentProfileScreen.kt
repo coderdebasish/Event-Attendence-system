@@ -21,6 +21,7 @@ import com.eventattendance.app.core.audio.SoundFeedbackManager
 import com.eventattendance.app.core.designsystem.PrimaryActionButton
 import com.eventattendance.app.core.designsystem.StatusBadge
 import com.eventattendance.app.core.designsystem.SuccessGreen
+import com.eventattendance.app.core.designsystem.WarningAmber
 import com.eventattendance.app.data.local.UserPreferences
 import com.eventattendance.app.data.model.AttendanceOutcome
 import com.eventattendance.app.data.model.AttendanceRecord
@@ -77,6 +78,13 @@ class StudentProfileViewModel @Inject constructor(
                     isSubmitting = false
                     onSuccessDone()
                 }
+                is AttendanceOutcome.OfflineQueued -> {
+                    soundManager.playSuccessFeedback()
+                    feedbackMessage = "Marked offline! Queued for auto-sync."
+                    feedbackIsError = false
+                    isSubmitting = false
+                    onSuccessDone()
+                }
                 is AttendanceOutcome.AlreadyMarked -> {
                     soundManager.playWarningFeedback()
                     feedbackMessage = "Already marked at ${outcome.markedAt.take(19)} by ${outcome.operatorName ?: "Operator"}"
@@ -118,6 +126,7 @@ fun StudentProfileScreen(
     val student by viewModel.student.collectAsState()
     val attendanceRecord by viewModel.attendanceRecord.collectAsState()
     val isPresent = attendanceRecord != null && attendanceRecord?.status == "present"
+    val isPendingSync = attendanceRecord?.syncStatus == "pending_sync"
 
     Scaffold(
         topBar = {
@@ -182,7 +191,11 @@ fun StudentProfileScreen(
                                     maxLines = 1
                                 )
                             }
-                            StatusBadge(status = if (isPresent) "PRESENT" else "UNMARKED")
+                            StatusBadge(
+                                status = if (isPresent) {
+                                    if (isPendingSync) "pending_sync" else "PRESENT"
+                                } else "UNMARKED"
+                            )
                         }
                     }
 
@@ -272,6 +285,10 @@ fun StudentProfileScreen(
                 // Action Button: Mark Attendance or Already Marked State
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     if (isPresent) {
+                        val buttonColor = if (isPendingSync) WarningAmber else SuccessGreen
+                        val buttonText = if (isPendingSync) "Marked Offline (Pending Sync)" else "Attendance Already Marked"
+                        val buttonIcon = if (isPendingSync) Icons.Default.CloudSync else Icons.Default.CheckCircle
+
                         Button(
                             onClick = {},
                             modifier = Modifier
@@ -280,16 +297,16 @@ fun StudentProfileScreen(
                             enabled = false,
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
-                                disabledContainerColor = SuccessGreen.copy(alpha = 0.2f),
-                                disabledContentColor = SuccessGreen
+                                disabledContainerColor = buttonColor.copy(alpha = 0.2f),
+                                disabledContentColor = buttonColor
                             )
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Icon(Icons.Default.CheckCircle, contentDescription = null)
-                                Text("Attendance Already Marked", fontWeight = FontWeight.Bold)
+                                Icon(buttonIcon, contentDescription = null)
+                                Text(buttonText, fontWeight = FontWeight.Bold)
                             }
                         }
                     } else {

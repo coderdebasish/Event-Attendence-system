@@ -1,11 +1,80 @@
-*.iml
-.gradle
-/local.properties
-/.idea/
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+# =========================================================================
+# Event Attendance System - Production Android GitIgnore
+# =========================================================================
+
+# Built Application Packages & Binary Artifacts
 *.apk
+*.ap_
 *.aab
+*.dex
+*.class
+bin/
+out/
+
+# Build Directories (Root and all submodules like /app/build)
+build/
+**/build/
+
+# Gradle Caches and Execution Metadata
+.gradle/
+gradle-app.setting
+.gradletasknamecache
+
+# Local Machine SDK Paths & User Configurations
+local.properties
+.attach_pid*
+
+# Signing Keys, Keystores, and Credentials (CRITICAL: Never commit to Git)
+*.jks
+*.keystore
+*.key
+*.p12
+*.bks
+release-keystore.properties
+signing.properties
+google-services.json
+
+# Environment Variables & Secret Configs
+.env
+.env.*
+!.env.example
+secrets.properties
+
+# Android Studio, IntelliJ IDEA & JetBrains Workspace
+*.iml
+*.ipr
+*.iws
+.idea/
+!.idea/codeStyles
+!.idea/icon.png
+
+# Visual Studio Code & Text Editors
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*~
+*.swp
+*.swo
+
+# Profiler, NDK & Native Builds
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Kotlin Compiler Caches & Memory Dumps
+.kotlin/
+*.hprof
+
+# Operating System Metadata & Junk Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Logs & Test Reports
+*.log
+crashlytics-build.properties

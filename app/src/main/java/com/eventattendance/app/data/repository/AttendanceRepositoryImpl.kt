@@ -223,6 +223,31 @@ class AttendanceRepositoryImpl @Inject constructor(
         return Result.success(syncedCount)
     }
 
+    override suspend fun syncAllPendingRecords(): Result<Int> {
+        val pending = attendanceDao.getAllPendingRecords()
+        if (pending.isEmpty()) return Result.success(0)
+
+        var syncedCount = 0
+        for (record in pending) {
+            try {
+                val outcome = api.markAttendance(
+                    eventId = record.eventId,
+                    enrollmentNo = record.enrollmentNo,
+                    operatorName = record.operatorName,
+                    deviceId = record.deviceId
+                )
+                if (outcome is AttendanceOutcome.Success || outcome is AttendanceOutcome.AlreadyMarked) {
+                    attendanceDao.updateSyncStatus(record.id, "synced")
+                    syncedCount++
+                }
+            } catch (_: Exception) {
+                // Network unreachable or failing, pause attempt
+                break
+            }
+        }
+        return Result.success(syncedCount)
+    }
+
     override suspend fun saveImportedStudents(students: List<EventStudent>): Result<Int> {
         return try {
             studentDao.insertStudents(students)

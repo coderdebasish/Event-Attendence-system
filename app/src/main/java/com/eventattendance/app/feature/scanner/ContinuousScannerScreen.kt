@@ -37,6 +37,7 @@ import com.eventattendance.app.core.audio.SoundFeedbackManager
 import com.eventattendance.app.core.designsystem.*
 import com.eventattendance.app.core.util.QrParseResult
 import com.eventattendance.app.core.util.StudentQrParser
+import com.eventattendance.app.core.network.NetworkMonitor
 import com.eventattendance.app.data.local.UserPreferences
 import com.eventattendance.app.data.model.AttendanceOutcome
 import com.eventattendance.app.data.model.Event
@@ -57,6 +58,7 @@ import javax.inject.Inject
 
 sealed class ScannerFeedback {
     data class Success(val studentName: String, val enrollmentNo: String) : ScannerFeedback()
+    data class OfflineQueued(val studentName: String, val enrollmentNo: String) : ScannerFeedback()
     data class Duplicate(val studentName: String, val enrollmentNo: String, val markedAt: String) : ScannerFeedback()
     data class NotRegistered(val enrollmentNo: String) : ScannerFeedback()
     data class Error(val message: String) : ScannerFeedback()
@@ -68,13 +70,17 @@ class ScannerViewModel @Inject constructor(
     private val attendanceRepository: AttendanceRepository,
     private val eventRepository: EventRepository,
     private val soundManager: SoundFeedbackManager,
-    private val preferences: UserPreferences
+    private val preferences: UserPreferences,
+    private val networkMonitor: NetworkMonitor
 ) : ViewModel() {
 
     val eventId: String = checkNotNull(savedStateHandle["eventId"])
 
     val event: StateFlow<Event?> = eventRepository.getEventById(eventId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val isOnline: StateFlow<Boolean> = networkMonitor.isOnline
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     var feedback by mutableStateOf<ScannerFeedback?>(null)
         private set
@@ -124,6 +130,17 @@ class ScannerViewModel @Inject constructor(
                 is AttendanceOutcome.Success -> {
                     soundManager.playSuccessFeedback()
                     feedback = ScannerFeedback.Success(
+                        studentName = outcome.studentName,
+                        enrollmentNo = outcome.enrollmentNo
+                    )
+                    // Visible for ~1 second, then automatically resumes continuous scanning
+                    delay(1000)
+                    feedback = null
+                    isInFlight = false
+                }
+                is AttendanceOutcome.OfflineQueued -> {
+                    soundManager.playSuccessFeedback()
+                    feedback = ScannerFeedback.OfflineQueued(
                         studentName = outcome.studentName,
                         enrollmentNo = outcome.enrollmentNo
                     )
@@ -265,12 +282,20 @@ fun ContinuousScannerScreen(
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
                 }
 
-                Text(
-                    text = "Continuous Scanner",
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                val isOnline by viewModel.isOnline.collectAsState()
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Continuous Scanner",
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    StatusBadge(status = if (isOnline) "online" else "offline")
+                }
 
                 IconButton(
                     onClick = viewModel::toggleTorch,
@@ -319,6 +344,12 @@ fun ScannerFeedbackBanner(feedback: ScannerFeedback) {
             Icons.Default.CheckCircle,
             feedback.studentName,
             "Present: ${feedback.enrollmentNo}"
+        )
+        is ScannerFeedback.OfflineQueued -> Quadruple(
+            BrandAccent,
+            Icons.Default.CloudSync,
+            feedback.studentName,
+            "Queued Offline (ID: ${feedback.enrollmentNo})"
         )
         is ScannerFeedback.Duplicate -> Quadruple(
             WarningAmber,
