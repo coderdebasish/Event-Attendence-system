@@ -193,7 +193,7 @@ fun AppNavigation(
         }
 
         composable(
-            route = "audit_log/{eventId}",
+            route = Screen.AuditLog.route,
             arguments = listOf(navArgument("eventId") { type = NavType.StringType })
         ) {
             AuditLogScreen(

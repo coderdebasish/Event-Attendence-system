@@ -2,8 +2,10 @@ package com.eventattendance.app.data.remote
 
 import com.eventattendance.app.data.local.AttendanceDao
 import com.eventattendance.app.data.model.AttendanceRecord
+import io.github.jan.supabase.realtime.PostgresAction
 import io.github.jan.supabase.realtime.RealtimeChannel
 import io.github.jan.supabase.realtime.channel
+import io.github.jan.supabase.realtime.decodeRecord
 import io.github.jan.supabase.realtime.postgresChangeFlow
 import io.github.jan.supabase.realtime.realtime
 import kotlinx.coroutines.CoroutineScope
@@ -33,19 +35,22 @@ class SupabaseRealtimeManager @Inject constructor(
                 val client = clientProvider.getClient()
                 activeChannel = client.realtime.channel("event_attendance_$eventId")
 
-                val changeFlow = activeChannel!!.postgresChangeFlow<AttendanceRecord>(schema = "public") {
+                val changeFlow = activeChannel!!.postgresChangeFlow<PostgresAction.Insert>(schema = "public") {
                     table = "attendance_records"
-                    filter = "event_id=eq.$eventId"
                 }
 
                 activeChannel!!.subscribe()
 
                 changeFlow
                     .catch { /* Handle connection retries silently */ }
-                    .collect { change ->
-                        // Synchronize incoming realtime attendance record into local Room database
-                        change.record?.let { record ->
-                            attendanceDao.insertAttendance(record)
+                    .collect { action ->
+                        try {
+                            val record = action.decodeRecord<AttendanceRecord>()
+                            if (record.eventId == eventId) {
+                                attendanceDao.insertAttendance(record)
+                            }
+                        } catch (_: Exception) {
+                            // Ignore malformed payloads
                         }
                     }
             } catch (_: Exception) {
