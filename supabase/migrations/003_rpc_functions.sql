@@ -186,3 +186,107 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.events;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.attendance_records;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.event_students;
+
+-- Function 3: Admin Create User (Directly provision operators & admins)
+CREATE OR REPLACE FUNCTION public.admin_create_user(
+    p_email TEXT,
+    p_password TEXT,
+    p_full_name TEXT,
+    p_role TEXT DEFAULT 'operator'
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth, extensions
+AS $$
+DECLARE
+    v_new_id UUID := gen_random_uuid();
+    v_clean_email TEXT := lower(trim(p_email));
+    v_role_enum public.app_role;
+BEGIN
+    -- 1. Security Check: Only admins can create users
+    IF NOT public.is_admin() THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'message', 'Permission denied: Only administrators can create users.'
+        );
+    END IF;
+
+    -- 2. Validate input
+    IF v_clean_email IS NULL OR v_clean_email = '' OR position('@' in v_clean_email) = 0 THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'message', 'Please provide a valid email address.'
+        );
+    END IF;
+
+    IF p_password IS NULL OR length(p_password) < 6 THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'message', 'Password must be at least 6 characters long.'
+        );
+    END IF;
+
+    IF lower(p_role) = 'admin' THEN
+        v_role_enum := 'admin'::public.app_role;
+    ELSE
+        v_role_enum := 'operator'::public.app_role;
+    END IF;
+
+    -- 3. Check if user already exists
+    IF EXISTS (SELECT 1 FROM auth.users WHERE lower(email) = v_clean_email) THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'message', 'A user with this email address already exists.'
+        );
+    END IF;
+
+    -- 4. Create user in auth.users
+    INSERT INTO auth.users (
+        instance_id,
+        id,
+        aud,
+        role,
+        email,
+        encrypted_password,
+        email_confirmed_at,
+        raw_app_meta_data,
+        raw_user_meta_data,
+        created_at,
+        updated_at
+    ) VALUES (
+        '00000000-0000-0000-0000-000000000000'::uuid,
+        v_new_id,
+        'authenticated',
+        'authenticated',
+        v_clean_email,
+        extensions.crypt(p_password, extensions.gen_salt('bf')),
+        now(),
+        '{"provider":"email","providers":["email"]}'::jsonb,
+        jsonb_build_object('full_name', p_full_name, 'role', v_role_enum::text),
+        now(),
+        now()
+    );
+
+    -- 5. Ensure profile is created/updated with correct role
+    INSERT INTO public.profiles (id, email, full_name, role)
+    VALUES (v_new_id, v_clean_email, p_full_name, v_role_enum)
+    ON CONFLICT (id) DO UPDATE
+    SET role = v_role_enum,
+        full_name = EXCLUDED.full_name;
+
+    RETURN jsonb_build_object(
+        'success', true,
+        'user_id', v_new_id,
+        'email', v_clean_email,
+        'role', v_role_enum::text,
+        'message', 'User created successfully.'
+    );
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'message', 'Failed to create user: ' || SQLERRM
+        );
+END;
+$$;

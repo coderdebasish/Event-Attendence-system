@@ -185,4 +185,50 @@ class SupabaseAttendanceApi @Inject constructor(
             }
             .decodeList<AuditLog>()
     }
+
+    suspend fun getUsers(): List<UserProfile> {
+        val client = clientProvider.getClient()
+        return client.postgrest["profiles"]
+            .select()
+            .decodeList<UserProfile>()
+    }
+
+    suspend fun createUser(email: String, password: String, fullName: String, role: String): Result<String> {
+        return try {
+            val client = clientProvider.getClient()
+            val params = buildJsonObject {
+                put("p_email", email.trim())
+                put("p_password", password)
+                put("p_full_name", fullName.trim())
+                put("p_role", role.lowercase().trim())
+            }
+            val responseJson = client.postgrest.rpc("admin_create_user", params).decodeAs<JsonObject>()
+            val isSuccess = responseJson["success"]?.jsonPrimitive?.booleanOrNull ?: false
+            val message = responseJson["message"]?.jsonPrimitive?.content ?: "Unknown response"
+            if (isSuccess) {
+                Result.success(message)
+            } else {
+                Result.failure(Exception(message))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateUserRole(userId: String, newRole: String): Result<Unit> {
+        return try {
+            val client = clientProvider.getClient()
+            val updateBody = buildJsonObject {
+                put("role", newRole.lowercase())
+            }
+            client.postgrest["profiles"].update(updateBody) {
+                filter {
+                    eq("id", userId)
+                }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

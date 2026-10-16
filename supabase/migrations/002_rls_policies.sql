@@ -31,6 +31,10 @@ CREATE POLICY "Profiles are viewable by authenticated users"
     TO authenticated
     USING (true);
 
+CREATE POLICY "Enable insert for authenticated users or system"
+    ON public.profiles FOR INSERT
+    WITH CHECK (true);
+
 CREATE POLICY "Users can update their own profile name"
     ON public.profiles FOR UPDATE
     TO authenticated

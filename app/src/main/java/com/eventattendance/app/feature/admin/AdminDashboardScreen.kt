@@ -68,6 +68,7 @@ fun AdminDashboardScreen(
     onNavigateToMonitoring: () -> Unit,
     onNavigateToAuditLogs: () -> Unit,
     onNavigateToEditEvent: () -> Unit,
+    onNavigateToUserManagement: () -> Unit,
     viewModel: AdminDashboardViewModel = hiltViewModel()
 ) {
     val event by viewModel.event.collectAsState()
@@ -238,6 +239,15 @@ fun AdminDashboardScreen(
                         icon = Icons.Default.Settings,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         onClick = onNavigateToEditEvent
+                    )
+                }
+                item {
+                    AdminActionTile(
+                        title = "Manage Users",
+                        subtitle = "Add operators & admins",
+                        icon = Icons.Default.GroupAdd,
+                        tint = BrandPrimary,
+                        onClick = onNavigateToUserManagement
                     )
                 }
             }

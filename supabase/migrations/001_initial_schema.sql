@@ -18,18 +18,42 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 
 -- Trigger to auto-create profile on user signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER 
+LANGUAGE plpgsql 
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_role public.app_role := 'operator';
+    v_full_name TEXT;
 BEGIN
+    IF new.raw_user_meta_data IS NOT NULL AND new.raw_user_meta_data->>'role' = 'admin' THEN
+        v_role := 'admin'::public.app_role;
+    END IF;
+
+    v_full_name := COALESCE(
+        new.raw_user_meta_data->>'full_name',
+        split_part(new.email, '@', 1),
+        'Operator'
+    );
+
     INSERT INTO public.profiles (id, email, full_name, role)
     VALUES (
         new.id,
         new.email,
-        COALESCE(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1), 'Operator'),
-        COALESCE((new.raw_user_meta_data->>'role')::app_role, 'operator')
-    );
+        v_full_name,
+        v_role
+    )
+    ON CONFLICT (id) DO UPDATE
+    SET email = EXCLUDED.email,
+        full_name = EXCLUDED.full_name;
+
     RETURN new;
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN new;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created

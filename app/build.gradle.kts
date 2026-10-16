@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -23,8 +25,18 @@ android {
             useSupportLibrary = true
         }
 
-        buildConfigField("String", "SUPABASE_URL", "\"https://your-project-id.supabase.co\"")
-        buildConfigField("String", "SUPABASE_ANON_KEY", "\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.your-anon-key\"")
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(localPropertiesFile.inputStream())
+        }
+        val defaultUrl = localProperties.getProperty("SUPABASE_URL") ?: "https://your-project-id.supabase.co"
+        val defaultKey = localProperties.getProperty("SUPABASE_ANON_KEY")
+            ?: localProperties.getProperty("SUPABASE_PUBLISHABLE_KEY")
+            ?: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.your-anon-key"
+
+        buildConfigField("String", "SUPABASE_URL", "\"$defaultUrl\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"$defaultKey\"")
     }
 
     buildTypes {

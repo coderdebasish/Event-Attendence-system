@@ -1,6 +1,8 @@
 package com.eventattendance.app.data.repository
 
 import com.eventattendance.app.data.local.UserPreferences
+import com.eventattendance.app.data.model.UserProfile
+import com.eventattendance.app.data.remote.SupabaseAttendanceApi
 import com.eventattendance.app.data.remote.SupabaseClientProvider
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
@@ -18,11 +20,15 @@ interface AuthRepository {
     suspend fun loginAsOperator(displayName: String): Result<Unit>
     suspend fun logout()
     suspend fun getAuthenticatedUserId(): String?
+    suspend fun getUsers(): Result<List<UserProfile>>
+    suspend fun createUser(email: String, password: String, fullName: String, role: String): Result<String>
+    suspend fun updateUserRole(userId: String, newRole: String): Result<Unit>
 }
 
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
     private val clientProvider: SupabaseClientProvider,
+    private val api: SupabaseAttendanceApi,
     private val preferences: UserPreferences
 ) : AuthRepository {
 
@@ -86,5 +92,21 @@ class AuthRepositoryImpl @Inject constructor(
         } catch (_: Exception) {
             null
         }
+    }
+
+    override suspend fun getUsers(): Result<List<UserProfile>> {
+        return try {
+            Result.success(api.getUsers())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun createUser(email: String, password: String, fullName: String, role: String): Result<String> {
+        return api.createUser(email, password, fullName, role)
+    }
+
+    override suspend fun updateUserRole(userId: String, newRole: String): Result<Unit> {
+        return api.updateUserRole(userId, newRole)
     }
 }

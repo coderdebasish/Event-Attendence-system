@@ -144,6 +144,9 @@ fun AppNavigation(
                 },
                 onNavigateToEditEvent = {
                     navController.navigate(Screen.EventCreateEdit.createRoute(eventId))
+                },
+                onNavigateToUserManagement = {
+                    navController.navigate(Screen.UserManagement.route)
                 }
             )
         }
@@ -209,6 +212,12 @@ fun AppNavigation(
                         popUpTo(0) { inclusive = true }
                     }
                 }
+            )
+        }
+
+        composable(Screen.UserManagement.route) {
+            UserManagementScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }
