@@ -13,9 +13,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,9 +37,12 @@ fun StatusBadge(
 ) {
     val (backgroundColor, textColor, icon) = when (status.lowercase()) {
         "present", "success" -> Triple(SuccessGreenLight, SuccessGreenDark, Icons.Default.CheckCircle)
+        "pending_sync" -> Triple(WarningAmberLight, WarningAmberDark, Icons.Default.CloudSync)
         "already_marked", "duplicate" -> Triple(WarningAmberLight, WarningAmberDark, Icons.Default.Info)
         "unmarked", "absent", "closed", "error" -> Triple(ErrorRoseLight, ErrorRoseDark, Icons.Default.Error)
         "open", "published" -> Triple(InfoBlueLight, InfoBlueDark, Icons.Default.CheckCircle)
+        "online" -> Triple(SuccessGreenLight, SuccessGreenDark, Icons.Default.Wifi)
+        "offline" -> Triple(ErrorRoseLight, ErrorRoseDark, Icons.Default.WifiOff)
         else -> Triple(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant, Icons.Default.Info)
     }
 

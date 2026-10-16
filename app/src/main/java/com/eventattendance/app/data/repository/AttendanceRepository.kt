@@ -15,6 +15,7 @@ interface AttendanceRepository {
     fun getAllAttendanceRecords(eventId: String): Flow<List<AttendanceRecord>>
     fun getAttendanceCount(eventId: String): Flow<Int>
     fun getStudentCount(eventId: String): Flow<Int>
+    fun getPendingSyncCount(eventId: String): Flow<Int>
 
     suspend fun markAttendance(
         eventId: String,
@@ -31,5 +32,6 @@ interface AttendanceRepository {
 
     suspend fun syncRoster(eventId: String): Result<Int>
     suspend fun syncAttendance(eventId: String): Result<Int>
+    suspend fun syncPendingRecords(eventId: String): Result<Int>
     suspend fun saveImportedStudents(students: List<EventStudent>): Result<Int>
 }

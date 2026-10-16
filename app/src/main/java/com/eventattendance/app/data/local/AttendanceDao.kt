@@ -28,6 +28,18 @@ interface AttendanceDao {
     @Query("SELECT COUNT(*) FROM attendance_records WHERE eventId = :eventId AND status = 'present'")
     fun getAttendanceCountForEvent(eventId: String): Flow<Int>
 
+    @Query("SELECT * FROM attendance_records WHERE syncStatus = 'pending_sync'")
+    suspend fun getAllPendingRecords(): List<AttendanceRecord>
+
+    @Query("SELECT * FROM attendance_records WHERE eventId = :eventId AND syncStatus = 'pending_sync'")
+    suspend fun getPendingRecordsForEvent(eventId: String): List<AttendanceRecord>
+
+    @Query("SELECT COUNT(*) FROM attendance_records WHERE eventId = :eventId AND syncStatus = 'pending_sync'")
+    fun getPendingSyncCountForEvent(eventId: String): Flow<Int>
+
+    @Query("UPDATE attendance_records SET syncStatus = :syncStatus WHERE id = :id")
+    suspend fun updateSyncStatus(id: String, syncStatus: String)
+
     @Query("UPDATE attendance_records SET status = :status WHERE id = :id")
     suspend fun updateStatus(id: String, status: String)
 

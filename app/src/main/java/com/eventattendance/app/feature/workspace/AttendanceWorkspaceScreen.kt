@@ -1,6 +1,6 @@
 package com.eventattendance.app.feature.workspace
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,9 +20,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.eventattendance.app.core.designsystem.BrandPrimary
-import com.eventattendance.app.core.designsystem.SearchBarField
-import com.eventattendance.app.core.designsystem.StatusBadge
+import com.eventattendance.app.core.designsystem.*
+import com.eventattendance.app.core.network.NetworkMonitor
+import com.eventattendance.app.core.network.OfflineSyncManager
 import com.eventattendance.app.data.local.UserPreferences
 import com.eventattendance.app.data.model.AttendanceRecord
 import com.eventattendance.app.data.model.Event
@@ -44,6 +44,8 @@ class AttendanceWorkspaceViewModel @Inject constructor(
     private val eventRepository: EventRepository,
     private val searchUseCase: SearchStudentsUseCase,
     private val realtimeManager: SupabaseRealtimeManager,
+    private val networkMonitor: NetworkMonitor,
+    private val offlineSyncManager: OfflineSyncManager,
     private val preferences: UserPreferences
 ) : ViewModel() {
 
@@ -51,6 +53,12 @@ class AttendanceWorkspaceViewModel @Inject constructor(
 
     val event: StateFlow<Event?> = eventRepository.getEventById(eventId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val isOnline: StateFlow<Boolean> = networkMonitor.isOnline
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val pendingSyncCount: StateFlow<Int> = attendanceRepository.getPendingSyncCount(eventId)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -68,7 +76,6 @@ class AttendanceWorkspaceViewModel @Inject constructor(
     val totalPresent = attendanceRepository.getAttendanceCount(eventId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
-    // Tracks navigation trigger so exact unique match navigates only once per query entry
     private val _autoNavigateStudent = MutableStateFlow<EventStudent?>(null)
     val autoNavigateStudent: StateFlow<EventStudent?> = _autoNavigateStudent.asStateFlow()
 
@@ -80,7 +87,6 @@ class AttendanceWorkspaceViewModel @Inject constructor(
     ) { query, roster ->
         val result = searchUseCase.execute(query, roster)
 
-        // Deliberate one-time navigation triggered only on exact unique match transition
         if (result.isExactUniqueMatch) {
             val student = result.exactUniqueMatch!!
             if (lastNavigatedEnrollment != student.enrollmentNo) {
@@ -100,7 +106,6 @@ class AttendanceWorkspaceViewModel @Inject constructor(
     )
 
     init {
-        // Subscribe to Realtime attendance updates for live sync
         realtimeManager.subscribeToEvent(eventId)
     }
 
@@ -115,6 +120,10 @@ class AttendanceWorkspaceViewModel @Inject constructor(
 
     fun onNavigatedToProfile() {
         _autoNavigateStudent.value = null
+    }
+
+    fun syncNow() {
+        offlineSyncManager.triggerSync(eventId)
     }
 
     fun resetSearch() {
@@ -133,6 +142,8 @@ fun AttendanceWorkspaceScreen(
     viewModel: AttendanceWorkspaceViewModel = hiltViewModel()
 ) {
     val event by viewModel.event.collectAsState()
+    val isOnline by viewModel.isOnline.collectAsState()
+    val pendingSyncCount by viewModel.pendingSyncCount.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val searchResult by viewModel.searchResultState.collectAsState()
     val attendanceMap by viewModel.attendanceRecords.collectAsState()
@@ -140,7 +151,6 @@ fun AttendanceWorkspaceScreen(
     val totalPresent by viewModel.totalPresent.collectAsState()
     val autoNavigateStudent by viewModel.autoNavigateStudent.collectAsState()
 
-    // Handle single one-time navigation when query becomes exact unique match
     LaunchedEffect(autoNavigateStudent) {
         autoNavigateStudent?.let { student ->
             viewModel.onNavigatedToProfile()
@@ -171,6 +181,12 @@ fun AttendanceWorkspaceScreen(
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
+                actions = {
+                    StatusBadge(
+                        status = if (isOnline) "ONLINE" else "OFFLINE",
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
@@ -194,6 +210,51 @@ fun AttendanceWorkspaceScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            // Offline Pending Sync Notification Banner
+            AnimatedVisibility(
+                visible = pendingSyncCount > 0,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = WarningAmberLight)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CloudSync,
+                                contentDescription = null,
+                                tint = WarningAmberDark,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                text = "$pendingSyncCount record(s) queued offline",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = WarningAmberDark
+                            )
+                        }
+                        TextButton(
+                            onClick = viewModel::syncNow,
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+                        ) {
+                            Text("Sync Now", fontWeight = FontWeight.Bold, color = WarningAmberDark)
+                        }
+                    }
+                }
+            }
+
             // Unified Search Field: Searches both Enrollment Number & Student Name
             SearchBarField(
                 query = searchQuery,
@@ -240,10 +301,12 @@ fun AttendanceWorkspaceScreen(
                     items(searchResult.filteredStudents, key = { it.id }) { student ->
                         val attendance = attendanceMap[student.enrollmentNo]
                         val isPresent = attendance != null && attendance.status == "present"
+                        val isPendingSync = attendance?.syncStatus == "pending_sync"
 
                         StudentRosterCard(
                             student = student,
                             isPresent = isPresent,
+                            isPendingSync = isPendingSync,
                             markedAt = attendance?.markedAt,
                             onClick = {
                                 onNavigateToProfile(student.enrollmentNo)
@@ -260,6 +323,7 @@ fun AttendanceWorkspaceScreen(
 fun StudentRosterCard(
     student: EventStudent,
     isPresent: Boolean,
+    isPendingSync: Boolean = false,
     markedAt: String?,
     onClick: () -> Unit
 ) {
@@ -317,7 +381,12 @@ fun StudentRosterCard(
                 }
             }
 
-            StatusBadge(status = if (isPresent) "PRESENT" else "UNMARKED")
+            val badgeStatus = when {
+                !isPresent -> "UNMARKED"
+                isPendingSync -> "PENDING_SYNC"
+                else -> "PRESENT"
+            }
+            StatusBadge(status = badgeStatus)
         }
     }
 }

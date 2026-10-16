@@ -12,7 +12,8 @@ import kotlinx.serialization.Serializable
     indices = [
         Index(value = ["eventId", "enrollmentNo"], unique = true),
         Index(value = ["eventId"]),
-        Index(value = ["markedAt"])
+        Index(value = ["markedAt"]),
+        Index(value = ["syncStatus"])
     ]
 )
 data class AttendanceRecord(
@@ -45,7 +46,9 @@ data class AttendanceRecord(
     val markedAt: String,
 
     @SerialName("created_at")
-    val createdAt: String? = null
+    val createdAt: String? = null,
+
+    val syncStatus: String = "synced" // "synced", "pending_sync"
 )
 
 sealed class AttendanceOutcome {
@@ -55,6 +58,15 @@ sealed class AttendanceOutcome {
         val enrollmentNo: String,
         val markedAt: String,
         val operatorName: String?
+    ) : AttendanceOutcome()
+
+    data class OfflineQueued(
+        val attendanceId: String,
+        val studentName: String,
+        val enrollmentNo: String,
+        val markedAt: String,
+        val operatorName: String?,
+        val message: String = "Saved locally. Awaiting network synchronization."
     ) : AttendanceOutcome()
 
     data class AlreadyMarked(

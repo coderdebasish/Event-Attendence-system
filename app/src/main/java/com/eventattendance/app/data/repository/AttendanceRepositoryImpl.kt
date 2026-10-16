@@ -7,6 +7,9 @@ import com.eventattendance.app.data.model.AttendanceRecord
 import com.eventattendance.app.data.model.EventStudent
 import com.eventattendance.app.data.remote.SupabaseAttendanceApi
 import kotlinx.coroutines.flow.Flow
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -59,70 +62,96 @@ class AttendanceRepositoryImpl @Inject constructor(
         return studentDao.getStudentCountForEvent(eventId)
     }
 
+    override fun getPendingSyncCount(eventId: String): Flow<Int> {
+        return attendanceDao.getPendingSyncCountForEvent(eventId)
+    }
+
     override suspend fun markAttendance(
         eventId: String,
         enrollmentNo: String,
         operatorName: String?,
         deviceId: String?
     ): AttendanceOutcome {
+        // 1. Check local student roster
+        val localStudent = studentDao.getStudentByEnrollment(eventId, enrollmentNo)
+
+        // 2. Check local attendance to prevent duplicates immediately
+        val localAttendance = attendanceDao.getAttendance(eventId, enrollmentNo)
+        if (localAttendance != null && localAttendance.status == "present") {
+            return AttendanceOutcome.AlreadyMarked(
+                attendanceId = localAttendance.id,
+                studentName = localStudent?.name ?: "Student",
+                enrollmentNo = enrollmentNo,
+                markedAt = localAttendance.markedAt,
+                operatorName = localAttendance.operatorName
+            )
+        }
+
+        // 3. Attempt Supabase online write
         return try {
-            // Call Supabase atomic RPC procedure
             val outcome = api.markAttendance(eventId, enrollmentNo, operatorName, deviceId)
 
-            // When server confirms success, persist directly into local Room database
-            if (outcome is AttendanceOutcome.Success) {
-                val student = studentDao.getStudentByEnrollment(eventId, enrollmentNo)
-                val record = AttendanceRecord(
-                    id = outcome.attendanceId.ifEmpty { UUID.randomUUID().toString() },
-                    eventId = eventId,
-                    eventStudentId = student?.id ?: outcome.attendanceId,
-                    enrollmentNo = enrollmentNo,
-                    operatorName = outcome.operatorName,
-                    markedAt = outcome.markedAt,
-                    status = "present"
-                )
-                attendanceDao.insertAttendance(record)
-            } else if (outcome is AttendanceOutcome.AlreadyMarked) {
-                // Keep local cache updated
-                val existing = attendanceDao.getAttendance(eventId, enrollmentNo)
-                if (existing == null) {
-                    val student = studentDao.getStudentByEnrollment(eventId, enrollmentNo)
-                    attendanceDao.insertAttendance(
-                        AttendanceRecord(
-                            id = outcome.attendanceId ?: UUID.randomUUID().toString(),
-                            eventId = eventId,
-                            eventStudentId = student?.id ?: "",
-                            enrollmentNo = enrollmentNo,
-                            operatorName = outcome.operatorName,
-                            markedAt = outcome.markedAt,
-                            status = "present"
-                        )
+            when (outcome) {
+                is AttendanceOutcome.Success -> {
+                    val record = AttendanceRecord(
+                        id = outcome.attendanceId.ifEmpty { UUID.randomUUID().toString() },
+                        eventId = eventId,
+                        eventStudentId = localStudent?.id ?: outcome.attendanceId,
+                        enrollmentNo = enrollmentNo,
+                        operatorName = outcome.operatorName,
+                        markedAt = outcome.markedAt,
+                        status = "present",
+                        syncStatus = "synced"
                     )
+                    attendanceDao.insertAttendance(record)
+                    outcome
                 }
+                is AttendanceOutcome.AlreadyMarked -> {
+                    val record = AttendanceRecord(
+                        id = outcome.attendanceId ?: UUID.randomUUID().toString(),
+                        eventId = eventId,
+                        eventStudentId = localStudent?.id ?: "",
+                        enrollmentNo = enrollmentNo,
+                        operatorName = outcome.operatorName,
+                        markedAt = outcome.markedAt,
+                        status = "present",
+                        syncStatus = "synced"
+                    )
+                    attendanceDao.insertAttendance(record)
+                    outcome
+                }
+                else -> outcome
             }
-            outcome
-        } catch (e: Exception) {
-            // Local fallback if network is unreachable
-            val existingLocal = attendanceDao.getAttendance(eventId, enrollmentNo)
-            if (existingLocal != null && existingLocal.status == "present") {
-                val student = studentDao.getStudentByEnrollment(eventId, enrollmentNo)
-                AttendanceOutcome.AlreadyMarked(
-                    attendanceId = existingLocal.id,
-                    studentName = student?.name ?: "",
+        } catch (networkException: Exception) {
+            // 4. Offline Fallback: If student is in local roster, queue attendance locally!
+            if (localStudent != null) {
+                val nowIso = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).format(Date())
+                val localId = UUID.randomUUID().toString()
+                val offlineRecord = AttendanceRecord(
+                    id = localId,
+                    eventId = eventId,
+                    eventStudentId = localStudent.id,
                     enrollmentNo = enrollmentNo,
-                    markedAt = existingLocal.markedAt,
-                    operatorName = existingLocal.operatorName
+                    operatorName = operatorName ?: "Operator",
+                    deviceId = deviceId ?: "android-offline",
+                    status = "present",
+                    markedAt = nowIso,
+                    syncStatus = "pending_sync"
+                )
+                attendanceDao.insertAttendance(offlineRecord)
+
+                AttendanceOutcome.OfflineQueued(
+                    attendanceId = localId,
+                    studentName = localStudent.name,
+                    enrollmentNo = enrollmentNo,
+                    markedAt = nowIso,
+                    operatorName = operatorName
                 )
             } else {
-                val student = studentDao.getStudentByEnrollment(eventId, enrollmentNo)
-                if (student == null) {
-                    AttendanceOutcome.StudentNotRegistered(enrollmentNo)
-                } else {
-                    AttendanceOutcome.Failure(
-                        message = "Unable to connect to server: ${e.localizedMessage ?: "Network error"}",
-                        cause = e
-                    )
-                }
+                AttendanceOutcome.StudentNotRegistered(
+                    enrollmentNo = enrollmentNo,
+                    message = "Student not found in offline roster."
+                )
             }
         }
     }
@@ -132,11 +161,17 @@ class AttendanceRepositoryImpl @Inject constructor(
         newStatus: String,
         reason: String
     ): Result<Unit> {
-        val result = api.correctAttendance(attendanceId, newStatus, reason)
-        if (result.isSuccess) {
+        return try {
+            val result = api.correctAttendance(attendanceId, newStatus, reason)
+            if (result.isSuccess) {
+                attendanceDao.updateStatus(attendanceId, newStatus)
+            }
+            result
+        } catch (e: Exception) {
+            // Local update fallback
             attendanceDao.updateStatus(attendanceId, newStatus)
+            Result.success(Unit)
         }
-        return result
     }
 
     override suspend fun syncRoster(eventId: String): Result<Int> {
@@ -161,6 +196,31 @@ class AttendanceRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    override suspend fun syncPendingRecords(eventId: String): Result<Int> {
+        val pending = attendanceDao.getPendingRecordsForEvent(eventId)
+        if (pending.isEmpty()) return Result.success(0)
+
+        var syncedCount = 0
+        for (record in pending) {
+            try {
+                val outcome = api.markAttendance(
+                    eventId = record.eventId,
+                    enrollmentNo = record.enrollmentNo,
+                    operatorName = record.operatorName,
+                    deviceId = record.deviceId
+                )
+                if (outcome is AttendanceOutcome.Success || outcome is AttendanceOutcome.AlreadyMarked) {
+                    attendanceDao.updateSyncStatus(record.id, "synced")
+                    syncedCount++
+                }
+            } catch (_: Exception) {
+                // Break on repeated network failure
+                break
+            }
+        }
+        return Result.success(syncedCount)
     }
 
     override suspend fun saveImportedStudents(students: List<EventStudent>): Result<Int> {
