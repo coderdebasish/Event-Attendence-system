@@ -1,0 +1,76 @@
+com.eventattendance.app-activity-ktx-1.9.3-0 C:\Users\debas\.gradle\caches\8.14\transforms\029a019755a4cd5f0f0e10e136be01f9\transformed\activity-ktx-1.9.3\res
+com.eventattendance.app-graphics-path-1.0.1-1 C:\Users\debas\.gradle\caches\8.14\transforms\05b1600a59c0354fce4fc146fb9d470d\transformed\graphics-path-1.0.1\res
+com.eventattendance.app-tracing-ktx-1.2.0-2 C:\Users\debas\.gradle\caches\8.14\transforms\15a6cb2ca1f46135291635e33573dbcb\transformed\tracing-ktx-1.2.0\res
+com.eventattendance.app-hilt-navigation-compose-1.2.0-3 C:\Users\debas\.gradle\caches\8.14\transforms\181eff42483d0e4b6a351302d65051a7\transformed\hilt-navigation-compose-1.2.0\res
+com.eventattendance.app-ui-graphics-release-4 C:\Users\debas\.gradle\caches\8.14\transforms\2210d751a2c0e38559ba4dd009b027b5\transformed\ui-graphics-release\res
+com.eventattendance.app-annotation-experimental-1.4.1-5 C:\Users\debas\.gradle\caches\8.14\transforms\2b6557fd45665798f0cf4e48ca48f7b6\transformed\annotation-experimental-1.4.1\res
+com.eventattendance.app-runtime-release-6 C:\Users\debas\.gradle\caches\8.14\transforms\30d75b9f6bf43ee36fb5f6aa3a8d6e4a\transformed\runtime-release\res
+com.eventattendance.app-ui-release-7 C:\Users\debas\.gradle\caches\8.14\transforms\3712b6d6e5cbf5284c4908c3459f5bb9\transformed\ui-release\res
+com.eventattendance.app-datastore-release-8 C:\Users\debas\.gradle\caches\8.14\transforms\3776f28727c605283cea3103f3d3cb66\transformed\datastore-release\res
+com.eventattendance.app-ui-geometry-release-9 C:\Users\debas\.gradle\caches\8.14\transforms\3801f1f439c1e33960a14e1a101aa28d\transformed\ui-geometry-release\res
+com.eventattendance.app-sqlite-framework-2.4.0-10 C:\Users\debas\.gradle\caches\8.14\transforms\3eba418abcd17649beb40ef0d2ea7d75\transformed\sqlite-framework-2.4.0\res
+com.eventattendance.app-lifecycle-livedata-core-2.8.7-11 C:\Users\debas\.gradle\caches\8.14\transforms\41f071573c8e6bd07fee10c3eb413181\transformed\lifecycle-livedata-core-2.8.7\res
+com.eventattendance.app-navigation-common-ktx-2.8.4-12 C:\Users\debas\.gradle\caches\8.14\transforms\46a96ef6c35b6a1e79c57ad9c68c0974\transformed\navigation-common-ktx-2.8.4\res
+com.eventattendance.app-core-1.15.0-13 C:\Users\debas\.gradle\caches\8.14\transforms\46e23c1f64b7193f5b4d425adf194280\transformed\core-1.15.0\res
+com.eventattendance.app-lifecycle-runtime-ktx-release-14 C:\Users\debas\.gradle\caches\8.14\transforms\4afe9ee880fb4d241a4e943df8b75528\transformed\lifecycle-runtime-ktx-release\res
+com.eventattendance.app-emoji2-views-helper-1.3.0-15 C:\Users\debas\.gradle\caches\8.14\transforms\4df3b1d13a17c32bcb1de8c6241fe90f\transformed\emoji2-views-helper-1.3.0\res
+com.eventattendance.app-animation-release-16 C:\Users\debas\.gradle\caches\8.14\transforms\4fc47add38b6b3f7eace806f8b3c26ed\transformed\animation-release\res
+com.eventattendance.app-animation-core-release-17 C:\Users\debas\.gradle\caches\8.14\transforms\55d273384bc7f2b24bda1eb9891dfeae\transformed\animation-core-release\res
+com.eventattendance.app-play-services-basement-18.4.0-18 C:\Users\debas\.gradle\caches\8.14\transforms\55e42a4dde59bc848ef3b8c3580507da\transformed\play-services-basement-18.4.0\res
+com.eventattendance.app-material-icons-extended-release-19 C:\Users\debas\.gradle\caches\8.14\transforms\5670b691649ec0dcfbcedd779359d828\transformed\material-icons-extended-release\res
+com.eventattendance.app-play-services-base-18.5.0-20 C:\Users\debas\.gradle\caches\8.14\transforms\5705c3a45ce9db84ab1116749f74b769\transformed\play-services-base-18.5.0\res
+com.eventattendance.app-lifecycle-viewmodel-compose-release-21 C:\Users\debas\.gradle\caches\8.14\transforms\59444d51a056ba499ad39977617a3c63\transformed\lifecycle-viewmodel-compose-release\res
+com.eventattendance.app-sqlite-2.4.0-22 C:\Users\debas\.gradle\caches\8.14\transforms\619ec356d5786217e3b4c0f282fcdeef\transformed\sqlite-2.4.0\res
+com.eventattendance.app-startup-runtime-1.2.0-23 C:\Users\debas\.gradle\caches\8.14\transforms\64baaac8e230a65a19a3cbf5481d93c4\transformed\startup-runtime-1.2.0\res
+com.eventattendance.app-ui-unit-release-24 C:\Users\debas\.gradle\caches\8.14\transforms\69c0f9d693fea8122d36da253eebe38e\transformed\ui-unit-release\res
+com.eventattendance.app-ui-tooling-preview-release-25 C:\Users\debas\.gradle\caches\8.14\transforms\6b4a5efb9593e64e8861af88ce882adc\transformed\ui-tooling-preview-release\res
+com.eventattendance.app-navigation-compose-2.8.4-26 C:\Users\debas\.gradle\caches\8.14\transforms\7a17780712cdfe27c37abb598fb9d968\transformed\navigation-compose-2.8.4\res
+com.eventattendance.app-navigation-runtime-2.8.4-27 C:\Users\debas\.gradle\caches\8.14\transforms\7c854d767a04ba2282059c957831b0b6\transformed\navigation-runtime-2.8.4\res
+com.eventattendance.app-material-icons-core-release-28 C:\Users\debas\.gradle\caches\8.14\transforms\7cf59c165a3e23fde45e956fba8b3f0e\transformed\material-icons-core-release\res
+com.eventattendance.app-lifecycle-runtime-release-29 C:\Users\debas\.gradle\caches\8.14\transforms\7d7c33ff3982749c52b2bf2a96b62304\transformed\lifecycle-runtime-release\res
+com.eventattendance.app-lifecycle-viewmodel-ktx-2.8.7-30 C:\Users\debas\.gradle\caches\8.14\transforms\80f9ad6e38f0e56accd508023d66a4d8\transformed\lifecycle-viewmodel-ktx-2.8.7\res
+com.eventattendance.app-material3-release-31 C:\Users\debas\.gradle\caches\8.14\transforms\81ad9a3c37341ee3c0f941c4cc0d946e\transformed\material3-release\res
+com.eventattendance.app-browser-1.8.0-32 C:\Users\debas\.gradle\caches\8.14\transforms\82679e68132405e0904e64c5c16c741e\transformed\browser-1.8.0\res
+com.eventattendance.app-emoji2-1.3.0-33 C:\Users\debas\.gradle\caches\8.14\transforms\87ced1fbc4d2733c182badc9ed4939ba\transformed\emoji2-1.3.0\res
+com.eventattendance.app-activity-compose-1.9.3-34 C:\Users\debas\.gradle\caches\8.14\transforms\881a8e2fe5ba0e7173957117d449accc\transformed\activity-compose-1.9.3\res
+com.eventattendance.app-activity-1.9.3-35 C:\Users\debas\.gradle\caches\8.14\transforms\88b8a717ffaefdb6e0e4d22298c8c4ff\transformed\activity-1.9.3\res
+com.eventattendance.app-lifecycle-viewmodel-release-36 C:\Users\debas\.gradle\caches\8.14\transforms\92e00b68f399b10b980a3c83ecc4777b\transformed\lifecycle-viewmodel-release\res
+com.eventattendance.app-room-runtime-2.6.1-37 C:\Users\debas\.gradle\caches\8.14\transforms\989209b56124290683136cbc91ac91d2\transformed\room-runtime-2.6.1\res
+com.eventattendance.app-lifecycle-livedata-2.8.7-38 C:\Users\debas\.gradle\caches\8.14\transforms\98d7acdc7132e3b6d8e1c69e66da1ccd\transformed\lifecycle-livedata-2.8.7\res
+com.eventattendance.app-camera-video-1.4.1-39 C:\Users\debas\.gradle\caches\8.14\transforms\98f070d8fe11ad1d160e8d8ac0ece072\transformed\camera-video-1.4.1\res
+com.eventattendance.app-room-ktx-2.6.1-40 C:\Users\debas\.gradle\caches\8.14\transforms\9a8337f7512013995b800f4f316b6774\transformed\room-ktx-2.6.1\res
+com.eventattendance.app-appcompat-1.6.1-41 C:\Users\debas\.gradle\caches\8.14\transforms\9e3f1b23ee548a59f615953cfde73d85\transformed\appcompat-1.6.1\res
+com.eventattendance.app-tracing-1.2.0-42 C:\Users\debas\.gradle\caches\8.14\transforms\a01a5ccf20ce55c63d294fe559e226b4\transformed\tracing-1.2.0\res
+com.eventattendance.app-core-runtime-2.2.0-43 C:\Users\debas\.gradle\caches\8.14\transforms\a247e6c113eded542a160895299d83f2\transformed\core-runtime-2.2.0\res
+com.eventattendance.app-foundation-release-44 C:\Users\debas\.gradle\caches\8.14\transforms\a2af395d270187668ff2e7c40bd3c772\transformed\foundation-release\res
+com.eventattendance.app-lifecycle-livedata-core-ktx-2.8.7-45 C:\Users\debas\.gradle\caches\8.14\transforms\a2c29e439585abe70b07cc00bc315553\transformed\lifecycle-livedata-core-ktx-2.8.7\res
+com.eventattendance.app-navigation-common-2.8.4-46 C:\Users\debas\.gradle\caches\8.14\transforms\ae215b25410733ecb0244930e81bc17b\transformed\navigation-common-2.8.4\res
+com.eventattendance.app-lifecycle-viewmodel-savedstate-2.8.7-47 C:\Users\debas\.gradle\caches\8.14\transforms\afa16e6a14707101db257d8228b6ad36\transformed\lifecycle-viewmodel-savedstate-2.8.7\res
+com.eventattendance.app-datastore-preferences-release-48 C:\Users\debas\.gradle\caches\8.14\transforms\b4d187c077b87815a65b612b1401d6e6\transformed\datastore-preferences-release\res
+com.eventattendance.app-foundation-layout-release-49 C:\Users\debas\.gradle\caches\8.14\transforms\b518786f15dfa9ff700c19af33e3768e\transformed\foundation-layout-release\res
+com.eventattendance.app-fragment-1.5.1-50 C:\Users\debas\.gradle\caches\8.14\transforms\b5421ad05510b9d2ee87c209da89ed3c\transformed\fragment-1.5.1\res
+com.eventattendance.app-camera-camera2-1.4.1-51 C:\Users\debas\.gradle\caches\8.14\transforms\b6a3212ac95bde02657f729400866717\transformed\camera-camera2-1.4.1\res
+com.eventattendance.app-navigation-runtime-ktx-2.8.4-52 C:\Users\debas\.gradle\caches\8.14\transforms\b6ec3fd1a253cc09239a307bcec21307\transformed\navigation-runtime-ktx-2.8.4\res
+com.eventattendance.app-datastore-core-release-53 C:\Users\debas\.gradle\caches\8.14\transforms\b7c2403e35bd59f8484d24abb27f13d7\transformed\datastore-core-release\res
+com.eventattendance.app-savedstate-1.2.1-54 C:\Users\debas\.gradle\caches\8.14\transforms\c6dc0a6fa0771ef02753fd95aaca45d7\transformed\savedstate-1.2.1\res
+com.eventattendance.app-ui-util-release-55 C:\Users\debas\.gradle\caches\8.14\transforms\c828db1d14628f67d8696115e2d972d9\transformed\ui-util-release\res
+com.eventattendance.app-core-ktx-1.15.0-56 C:\Users\debas\.gradle\caches\8.14\transforms\cc543e4d7c2b61f2f14ebd5a155fb102\transformed\core-ktx-1.15.0\res
+com.eventattendance.app-savedstate-ktx-1.2.1-57 C:\Users\debas\.gradle\caches\8.14\transforms\cc564d077b291fea5237afeaa5ad2ba4\transformed\savedstate-ktx-1.2.1\res
+com.eventattendance.app-camera-lifecycle-1.4.1-58 C:\Users\debas\.gradle\caches\8.14\transforms\d1537351778b11a79178258834684f0c\transformed\camera-lifecycle-1.4.1\res
+com.eventattendance.app-customview-poolingcontainer-1.0.0-59 C:\Users\debas\.gradle\caches\8.14\transforms\d7b152cab8dcbb2caa30db3d99a79929\transformed\customview-poolingcontainer-1.0.0\res
+com.eventattendance.app-profileinstaller-1.3.1-60 C:\Users\debas\.gradle\caches\8.14\transforms\dd6002f4bf31e0968a678282bbb9b092\transformed\profileinstaller-1.3.1\res
+com.eventattendance.app-lifecycle-runtime-compose-release-61 C:\Users\debas\.gradle\caches\8.14\transforms\e0fdc39332469137bd079d5ec2c0d556\transformed\lifecycle-runtime-compose-release\res
+com.eventattendance.app-ui-text-release-62 C:\Users\debas\.gradle\caches\8.14\transforms\e39546459a5a08fb4d4a407c83bd14d1\transformed\ui-text-release\res
+com.eventattendance.app-camera-view-1.4.1-63 C:\Users\debas\.gradle\caches\8.14\transforms\e57047b9ed423ae4681f506f29d8ea68\transformed\camera-view-1.4.1\res
+com.eventattendance.app-material-ripple-release-64 C:\Users\debas\.gradle\caches\8.14\transforms\e59b35b1efaed75fa3df0e2cd1dd92cf\transformed\material-ripple-release\res
+com.eventattendance.app-runtime-saveable-release-65 C:\Users\debas\.gradle\caches\8.14\transforms\e611c36250e3f1c65723edf3a00158ed\transformed\runtime-saveable-release\res
+com.eventattendance.app-lifecycle-process-2.8.7-66 C:\Users\debas\.gradle\caches\8.14\transforms\f2dcfcbc2d1db384d4688273c54f151f\transformed\lifecycle-process-2.8.7\res
+com.eventattendance.app-hilt-navigation-1.2.0-67 C:\Users\debas\.gradle\caches\8.14\transforms\f511ef3dbf460ffc202e48a1be8c058f\transformed\hilt-navigation-1.2.0\res
+com.eventattendance.app-camera-core-1.4.1-68 C:\Users\debas\.gradle\caches\8.14\transforms\f7b44c3aa59cb62175003d99929bf5ee\transformed\camera-core-1.4.1\res
+com.eventattendance.app-appcompat-resources-1.6.1-69 C:\Users\debas\.gradle\caches\8.14\transforms\fe111708443cade7d26eac8c148eb51f\transformed\appcompat-resources-1.6.1\res
+com.eventattendance.app-resValues-70 D:\Programming Project\Event Attendence system\app\build\generated\res\resValues\release
+com.eventattendance.app-packageReleaseResources-71 D:\Programming Project\Event Attendence system\app\build\intermediates\incremental\release\packageReleaseResources\merged.dir
+com.eventattendance.app-packageReleaseResources-72 D:\Programming Project\Event Attendence system\app\build\intermediates\incremental\release\packageReleaseResources\stripped.dir
+com.eventattendance.app-release-73 D:\Programming Project\Event Attendence system\app\build\intermediates\merged_res\release\mergeReleaseResources
+com.eventattendance.app-main-74 D:\Programming Project\Event Attendence system\app\src\main\res
+com.eventattendance.app-release-75 D:\Programming Project\Event Attendence system\app\src\release\res
