@@ -106,9 +106,12 @@ class ScannerViewModel @Inject constructor(
         lastScannedCode = rawPayload
         lastScanTimestamp = now
 
+        com.eventattendance.app.core.util.AppLogger.i("Scanner", "Barcode detected: $rawPayload")
+
         // 2. Strict QR parsing using StudentQrParser (extracts Field 1 strictly)
         when (val parseResult = StudentQrParser.parse(rawPayload)) {
             is QrParseResult.Invalid -> {
+                com.eventattendance.app.core.util.AppLogger.w("Scanner", "Invalid QR: ${parseResult.reason}")
                 feedback = ScannerFeedback.Error("Invalid QR Code: ${parseResult.reason}")
                 viewModelScope.launch {
                     delay(1200)
@@ -125,10 +128,12 @@ class ScannerViewModel @Inject constructor(
         viewModelScope.launch {
             isInFlight = true
             val operatorName = preferences.operatorNameFlow.first() ?: "Operator"
+            com.eventattendance.app.core.util.AppLogger.i("Scanner", "Processing attendance for $enrollmentNo by $operatorName")
 
             when (val outcome = attendanceRepository.markAttendance(eventId, enrollmentNo, operatorName, "scanner")) {
                 is AttendanceOutcome.Success -> {
                     soundManager.playSuccessFeedback()
+                    com.eventattendance.app.core.util.AppLogger.s("Scanner", "Marked PRESENT: ${outcome.studentName} ($enrollmentNo)")
                     feedback = ScannerFeedback.Success(
                         studentName = outcome.studentName,
                         enrollmentNo = outcome.enrollmentNo
@@ -140,6 +145,7 @@ class ScannerViewModel @Inject constructor(
                 }
                 is AttendanceOutcome.OfflineQueued -> {
                     soundManager.playSuccessFeedback()
+                    com.eventattendance.app.core.util.AppLogger.w("Scanner", "Offline QUEUED: ${outcome.studentName} ($enrollmentNo)")
                     feedback = ScannerFeedback.OfflineQueued(
                         studentName = outcome.studentName,
                         enrollmentNo = outcome.enrollmentNo
@@ -151,6 +157,7 @@ class ScannerViewModel @Inject constructor(
                 }
                 is AttendanceOutcome.AlreadyMarked -> {
                     soundManager.playWarningFeedback()
+                    com.eventattendance.app.core.util.AppLogger.w("Scanner", "ALREADY MARKED: ${outcome.studentName} ($enrollmentNo) at ${outcome.markedAt}")
                     feedback = ScannerFeedback.Duplicate(
                         studentName = outcome.studentName,
                         enrollmentNo = outcome.enrollmentNo,
@@ -211,6 +218,9 @@ fun ContinuousScannerScreen(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { granted -> hasCameraPermission = granted }
     )
+
+    var showTestScanDialog by remember { mutableStateOf(false) }
+    var testEnrollmentInput by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         if (!hasCameraPermission) {
@@ -297,18 +307,85 @@ fun ContinuousScannerScreen(
                     StatusBadge(status = if (isOnline) "online" else "offline")
                 }
 
-                IconButton(
-                    onClick = viewModel::toggleTorch,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(Color.Black.copy(alpha = 0.5f))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(
-                        imageVector = if (viewModel.isTorchOn) Icons.Default.FlashOn else Icons.Default.FlashOff,
-                        contentDescription = "Torch",
-                        tint = if (viewModel.isTorchOn) Color.Yellow else Color.White
-                    )
+                    // Test Simulator Button for Laptop / Emulator Testing
+                    IconButton(
+                        onClick = { showTestScanDialog = true },
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(Color.Black.copy(alpha = 0.5f))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Science,
+                            contentDescription = "Test Scan Input",
+                            tint = Color.White
+                        )
+                    }
+
+                    IconButton(
+                        onClick = viewModel::toggleTorch,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(Color.Black.copy(alpha = 0.5f))
+                    ) {
+                        Icon(
+                            imageVector = if (viewModel.isTorchOn) Icons.Default.FlashOn else Icons.Default.FlashOff,
+                            contentDescription = "Torch",
+                            tint = if (viewModel.isTorchOn) Color.Yellow else Color.White
+                        )
+                    }
                 }
+            }
+
+            if (showTestScanDialog) {
+                AlertDialog(
+                    onDismissRequest = { showTestScanDialog = false },
+                    title = {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Icon(Icons.Default.Science, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Text("Laptop Test Scanner")
+                        }
+                    },
+                    text = {
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text(
+                                "Simulate scanning a student QR barcode without needing physical printouts or a camera.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            OutlinedTextField(
+                                value = testEnrollmentInput,
+                                onValueChange = { testEnrollmentInput = it },
+                                label = { Text("Enrollment Number or Raw QR") },
+                                placeholder = { Text("e.g. 12026105200229") },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                val code = testEnrollmentInput.trim()
+                                if (code.isNotEmpty()) {
+                                    showTestScanDialog = false
+                                    testEnrollmentInput = ""
+                                    viewModel.onBarcodeDetected(code)
+                                }
+                            }
+                        ) {
+                            Text("Trigger Scan")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showTestScanDialog = false }) {
+                            Text("Cancel")
+                        }
+                    }
+                )
             }
 
             // Scanning Reticle Overlay

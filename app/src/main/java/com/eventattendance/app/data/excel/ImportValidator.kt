@@ -28,23 +28,30 @@ data class SpreadsheetColumnMapping(
             headers.forEachIndexed { index, header ->
                 val h = header.lowercase().trim()
                 when {
-                    enrollIdx == null && (h.contains("enroll") || h.contains("reg") || h.contains("id") || h.contains("admission")) -> {
+                    // Check enrollment / registration / admission ID first so "Enrollment" does not match "roll"
+                    enrollIdx == null && (h.contains("enroll") || h.contains("reg") || h.contains("admission") ||
+                            ((h.contains("id") || h.contains("urn")) && !h.contains("email") && !h.contains("mail") && !h.contains("roll"))) -> {
                         enrollIdx = index
                     }
-                    nameIdx == null && (h.contains("name") || h.contains("student")) -> {
-                        nameIdx = index
-                    }
-                    secIdx == null && (h.contains("sec") || h.contains("branch") || h.contains("class")) -> {
-                        secIdx = index
-                    }
-                    rollIdx == null && (h.contains("roll") || h.contains("serial")) -> {
-                        rollIdx = index
-                    }
-                    emailIdx == null && (h.contains("email") || h.contains("mail")) -> {
+                    // Check email so "Student Email" maps to Email, not Student Name
+                    emailIdx == null && (h.contains("email") || h.contains("mail") || h == "gmail") -> {
                         emailIdx = index
                     }
-                    mobileIdx == null && (h.contains("mobile") || h.contains("phone") || h.contains("contact")) -> {
+                    // Check mobile/contact
+                    mobileIdx == null && (h.contains("mobile") || h.contains("phone") || h.contains("contact") || h.contains("cell")) -> {
                         mobileIdx = index
+                    }
+                    // Check roll number (excluding enrollment)
+                    rollIdx == null && !h.contains("enroll") && (h.contains("roll") || h.contains("serial")) -> {
+                        rollIdx = index
+                    }
+                    // Check section/branch/dept
+                    secIdx == null && (h.contains("sec") || h.contains("branch") || h.contains("class") || h.contains("dept")) -> {
+                        secIdx = index
+                    }
+                    // Check student name (ensure it's not roll/email/phone column)
+                    nameIdx == null && !h.contains("enroll") && (h.contains("name") || h == "student" || h == "candidate") -> {
+                        nameIdx = index
                     }
                 }
             }

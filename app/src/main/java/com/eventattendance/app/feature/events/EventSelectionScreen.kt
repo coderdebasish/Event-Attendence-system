@@ -80,13 +80,13 @@ class EventSelectionViewModel @Inject constructor(
 @Composable
 fun EventSelectionScreen(
     onEventSelected: (String) -> Unit,
-    onNavigateToAdminDashboard: (String) -> Unit,
-    onNavigateToCreateEvent: () -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToDiagnostics: () -> Unit = {},
+    onNavigateToAdminDashboard: (String) -> Unit = {},
+    onNavigateToCreateEvent: () -> Unit = {},
     viewModel: EventSelectionViewModel = hiltViewModel()
 ) {
     val operatorName by viewModel.operatorName.collectAsState()
-    val isAdmin by viewModel.isAdmin.collectAsState()
     val events by viewModel.events.collectAsState()
 
     Scaffold(
@@ -95,18 +95,21 @@ fun EventSelectionScreen(
                 title = {
                     Column {
                         Text(
-                            text = "Select Event",
+                            text = "Attendance Stations",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Logged in as ${operatorName ?: "Operator"}${if (isAdmin) " (Admin)" else ""}",
+                            text = "Operator: ${operatorName ?: "Volunteer"}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 },
                 actions = {
+                    IconButton(onClick = onNavigateToDiagnostics) {
+                        Icon(Icons.Default.MonitorHeart, contentDescription = "System Diagnostics")
+                    }
                     IconButton(onClick = viewModel::syncEvents) {
                         Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                     }
@@ -118,17 +121,6 @@ fun EventSelectionScreen(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             )
-        },
-        floatingActionButton = {
-            if (isAdmin) {
-                FloatingActionButton(
-                    onClick = onNavigateToCreateEvent,
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Create Event")
-                }
-            }
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
@@ -156,7 +148,7 @@ fun EventSelectionScreen(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = if (isAdmin) "Tap the + button to create a new event." else "Ask an administrator to publish an event.",
+                        text = "Ask an event coordinator to publish an active event from the web dashboard.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -173,9 +165,7 @@ fun EventSelectionScreen(
                 items(events, key = { it.id }) { event ->
                     EventCard(
                         event = event,
-                        isAdmin = isAdmin,
-                        onSelect = { viewModel.selectEvent(event.id) { onEventSelected(event.id) } },
-                        onAdminDashboard = { onNavigateToAdminDashboard(event.id) }
+                        onSelect = { viewModel.selectEvent(event.id) { onEventSelected(event.id) } }
                     )
                 }
             }
@@ -186,9 +176,7 @@ fun EventSelectionScreen(
 @Composable
 fun EventCard(
     event: Event,
-    isAdmin: Boolean,
-    onSelect: () -> Unit,
-    onAdminDashboard: () -> Unit
+    onSelect: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -250,16 +238,22 @@ fun EventCard(
                     )
                 }
 
-                if (isAdmin) {
-                    FilledTonalButton(
-                        onClick = onAdminDashboard,
-                        shape = RoundedCornerShape(10.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        Icon(Icons.Default.Dashboard, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("Manage", fontSize = 12.sp)
-                    }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "Open Station",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Icon(
+                        imageVector = Icons.Default.ArrowForward,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
         }

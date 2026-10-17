@@ -9,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.eventattendance.app.feature.admin.*
 import com.eventattendance.app.feature.auth.AdminLoginScreen
+import com.eventattendance.app.feature.diagnostics.DiagnosticsScreen
 import com.eventattendance.app.feature.events.EventCreateEditScreen
 import com.eventattendance.app.feature.events.EventSelectionScreen
 import com.eventattendance.app.feature.importexport.SpreadsheetImportScreen
@@ -71,14 +72,11 @@ fun AppNavigation(
                 onEventSelected = { eventId ->
                     navController.navigate(Screen.AttendanceWorkspace.createRoute(eventId))
                 },
-                onNavigateToAdminDashboard = { eventId ->
-                    navController.navigate(Screen.AdminDashboard.createRoute(eventId))
-                },
-                onNavigateToCreateEvent = {
-                    navController.navigate(Screen.EventCreateEdit.createRoute())
-                },
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route)
+                },
+                onNavigateToDiagnostics = {
+                    navController.navigate(Screen.Diagnostics.route)
                 }
             )
         }
@@ -217,6 +215,12 @@ fun AppNavigation(
 
         composable(Screen.UserManagement.route) {
             UserManagementScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.Diagnostics.route) {
+            DiagnosticsScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }

@@ -154,21 +154,6 @@ fun OperatorOnboardingScreen(
                         isLoading = viewModel.isLoading,
                         icon = Icons.Default.ArrowForward
                     )
-
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
-                    TextButton(
-                        onClick = onNavigateToAdminLogin,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(Icons.Default.AdminPanelSettings, contentDescription = null)
-                            Text("Switch to Administrator Login")
-                        }
-                    }
                 }
             }
         }

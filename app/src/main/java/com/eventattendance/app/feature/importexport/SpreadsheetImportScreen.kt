@@ -72,13 +72,25 @@ class SpreadsheetImportViewModel @Inject constructor(
     var importMessage by mutableStateOf<String?>(null)
         private set
 
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
+
     var conflictResolution by mutableStateOf("skip") // "skip" or "update"
         private set
 
     fun onFileParsed(spreadsheet: ParsedSpreadsheet) {
+        errorMessage = null
         parsedSpreadsheet = spreadsheet
         mapping = SpreadsheetColumnMapping.detectMappings(spreadsheet.headers)
         currentStep = ImportStep.MAP_COLUMNS
+    }
+
+    fun onParseError(error: String) {
+        errorMessage = error
+    }
+
+    fun clearError() {
+        errorMessage = null
     }
 
     fun updateMapping(newMapping: SpreadsheetColumnMapping) {
@@ -150,6 +162,7 @@ class SpreadsheetImportViewModel @Inject constructor(
         parsedSpreadsheet = null
         validationReport = null
         importMessage = null
+        errorMessage = null
     }
 }
 
@@ -165,12 +178,12 @@ fun SpreadsheetImportScreen(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         if (uri != null) {
-            val filename = uri.path?.substringAfterLast('/') ?: "imported_roster.xlsx"
+            val filename = StreamingSpreadsheetParser.resolveFileName(context, uri)
             try {
                 val parsed = StreamingSpreadsheetParser.parse(context, uri, filename)
                 viewModel.onFileParsed(parsed)
             } catch (e: Exception) {
-                // Parsing error
+                viewModel.onParseError(e.message ?: "Failed to read spreadsheet file.")
             }
         }
     }
@@ -200,6 +213,8 @@ fun SpreadsheetImportScreen(
             when (viewModel.currentStep) {
                 ImportStep.SELECT_FILE -> {
                     SelectFileStep(
+                        errorMessage = viewModel.errorMessage,
+                        onDismissError = viewModel::clearError,
                         onSelectFile = {
                             filePickerLauncher.launch(
                                 arrayOf(
@@ -244,7 +259,11 @@ fun SpreadsheetImportScreen(
 }
 
 @Composable
-fun SelectFileStep(onSelectFile: () -> Unit) {
+fun SelectFileStep(
+    errorMessage: String? = null,
+    onDismissError: () -> Unit = {},
+    onSelectFile: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -279,6 +298,41 @@ fun SelectFileStep(onSelectFile: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
+
+        if (!errorMessage.isNullOrBlank()) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = errorMessage,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(onClick = onDismissError) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Dismiss",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(28.dp))
         PrimaryActionButton(
             text = "Choose Spreadsheet File",
