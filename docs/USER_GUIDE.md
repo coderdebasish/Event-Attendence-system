@@ -64,3 +64,15 @@ On the workspace screen, three attendance marking methods are available on a sin
 - Tap **Live Monitoring** to see live attendance statistics.
 - Tap **Export Attendance as CSV / Excel** to share the complete attendee report.
 - To correct a mistake, tap the edit icon next to any record, provide an audit reason, and submit. The correction is recorded in the tamper-evident **Audit Trail**.
+
+### Step 5: Manage Users & Add Operators
+1. From the Admin Dashboard, tap **Manage Users**.
+2. View all active user accounts (Admins & Operators) and their roles.
+3. Tap **Add User** (FAB) to provision a new volunteer or administrator:
+   - Enter **Full Name** (e.g. `Rahul Sharma`).
+   - Enter **Email Address** (e.g. `rahul@college.edu`).
+   - Enter **Password** (min 6 characters).
+   - Select Role: **Operator** (attendance marking) or **Admin** (full management).
+   - Tap **Create User**. The account is created immediately in Supabase Auth.
+4. Admins can promote or demote any account between Operator and Admin with a single tap.
+

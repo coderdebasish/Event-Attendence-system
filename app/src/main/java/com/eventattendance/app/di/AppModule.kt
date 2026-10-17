@@ -63,9 +63,10 @@ object AppModule {
     @Singleton
     fun provideAuthRepository(
         clientProvider: SupabaseClientProvider,
+        api: SupabaseAttendanceApi,
         preferences: UserPreferences
     ): AuthRepository {
-        return AuthRepositoryImpl(clientProvider, preferences)
+        return AuthRepositoryImpl(clientProvider, api, preferences)
     }
 
     @Provides
